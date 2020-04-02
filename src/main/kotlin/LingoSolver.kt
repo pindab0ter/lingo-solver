@@ -13,7 +13,7 @@ object LingoSolver {
     @JvmStatic
     fun main(args: Array<String>) {
         measureTimedValue {
-            solve("cAlebsnnhani")
+            solve("L.N.EN", "uidawiampto")
         }.let { (candidates, duration) ->
             println("Solving took $duration")
             println("The candidates are:")
@@ -21,18 +21,20 @@ object LingoSolver {
         }
     }
 
-    private fun solve(word: String): List<String> {
-        val knownLetters = word.filter { c -> c.isUpperCase() }.toList()
-        val unknownLetters = word.filter { c -> c.isLowerCase() }.toList()
+    private fun solve(word: String, blacklist: String = ""): List<String> {
+        val placedLetters = word.filter { c -> c.isUpperCase() }.toLowerCase().toList()
+        val unplacedLetters = word.filter { c -> c.isLowerCase() }.toList()
         val pattern = Regex(word.replace(Regex("""[a-z]"""), ".").toLowerCase())
 
         return wordList.useLines { words ->
-            words.filter { line -> line.all { it.isLowerCase() } }
-                .filter { line -> pattern.matches(line) }
-                .filter { line ->
-                    line.toList().intersect(unknownLetters).map { c ->
-                        min(line.toList().count { it == c }, unknownLetters.count { it == c })
-                    }.sum() == line.length - knownLetters.size
+            words.filter { word -> word.all { it.isLowerCase() } }
+                .map { word -> word.replace("ij", "y") }
+                .filter { word -> pattern.matches(word) }
+                .filter { word -> blacklist.none { c -> word.filter { d -> d !in placedLetters }.toList().contains(c) } }
+                .filter { word ->
+                    word.toList().intersect(unplacedLetters).map { c ->
+                        min(word.toList().count { it == c }, unplacedLetters.count { it == c })
+                    }.sum() == unplacedLetters.count()
                 }
                 .toList()
         }
