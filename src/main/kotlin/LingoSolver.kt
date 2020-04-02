@@ -13,7 +13,7 @@ object LingoSolver {
     @JvmStatic
     fun main(args: Array<String>) {
         measureTimedValue {
-            solve("L.N.EN", "uidawiampto")
+            solve("aOOirltJblp")
         }.let { (candidates, duration) ->
             println("Solving took $duration")
             println("The candidates are:")
@@ -27,8 +27,7 @@ object LingoSolver {
         val pattern = Regex(word.replace(Regex("""[a-z]"""), ".").toLowerCase())
 
         return wordList.useLines { words ->
-            words.filter { word -> word.all { it.isLowerCase() } }
-                .map { word -> word.replace("ij", "y") }
+            words.map { word -> word.replace("ij", "y") }
                 .filter { word -> pattern.matches(word) }
                 .filter { word -> blacklist.none { c -> word.filter { d -> d !in placedLetters }.toList().contains(c) } }
                 .filter { word ->
