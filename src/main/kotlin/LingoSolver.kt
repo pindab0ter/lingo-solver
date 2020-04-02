@@ -13,7 +13,7 @@ object LingoSolver {
     @JvmStatic
     fun main(args: Array<String>) {
         measureTimedValue {
-            solve(".a..........", "clebsnnhani".toList())
+            solve("cAlebsnnhani")
         }.let { (candidates, duration) ->
             println("Solving took $duration")
             println("The candidates are:")
@@ -21,16 +21,17 @@ object LingoSolver {
         }
     }
 
-    private fun solve(word: String, letters: List<Char>): List<String> {
-        val knownLetters = word.filter { c -> c.isLetter() }.toList()
-        val regex = Regex(word)
+    private fun solve(word: String): List<String> {
+        val knownLetters = word.filter { c -> c.isUpperCase() }.toList()
+        val unknownLetters = word.filter { c -> c.isLowerCase() }.toList()
+        val pattern = Regex(word.replace(Regex("""[a-z]"""), ".").toLowerCase())
 
         return wordList.useLines { words ->
             words.filter { line -> line.all { it.isLowerCase() } }
-                .filter { line -> regex.matches(line) }
+                .filter { line -> pattern.matches(line) }
                 .filter { line ->
-                    line.toList().intersect(letters).map { c ->
-                        min(line.toList().count { it == c }, letters.count { it == c })
+                    line.toList().intersect(unknownLetters).map { c ->
+                        min(line.toList().count { it == c }, unknownLetters.count { it == c })
                     }.sum() == line.length - knownLetters.size
                 }
                 .toList()
