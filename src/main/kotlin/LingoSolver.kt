@@ -1,7 +1,6 @@
 package nl.pindab0ter.lingosolver
 
 import java.nio.file.Paths
-import kotlin.math.min
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
@@ -13,7 +12,7 @@ object LingoSolver {
     @JvmStatic
     fun main(args: Array<String>) {
         measureTimedValue {
-            solve("aOOirltJblp")
+            solve("oo.RD", "ate")
         }.let { (candidates, duration) ->
             println("Solving took $duration")
             println("The candidates are:")
@@ -21,19 +20,32 @@ object LingoSolver {
         }
     }
 
-    private fun solve(word: String, blacklist: String = ""): List<String> {
+    fun solve(word: String, blacklist: String = ""): List<String> {
         val placedLetters = word.filter { c -> c.isUpperCase() }.toLowerCase().toList()
         val unplacedLetters = word.filter { c -> c.isLowerCase() }.toList()
         val pattern = Regex(word.replace(Regex("""[a-z]"""), ".").toLowerCase())
 
         return wordList.useLines { words ->
-            words.map { word -> word.replace("ij", "y") }
+            words
+                // Lingo uses one character for the Dutch "ij"
+                .map { word -> word.replace("ij", "y") }
+                // Filter out words that don't have the known letters in the right place
                 .filter { word -> pattern.matches(word) }
-                .filter { word -> blacklist.none { c -> word.filter { d -> d !in placedLetters }.toList().contains(c) } }
+                // Filter out words where non-known letters contain blacklisted letters
                 .filter { word ->
-                    word.toList().intersect(unplacedLetters).map { c ->
-                        min(word.toList().count { it == c }, unplacedLetters.count { it == c })
-                    }.sum() == unplacedLetters.count()
+                    word.filter { wordLetter -> wordLetter !in placedLetters }
+                        .none { unplacedWordLetter -> unplacedWordLetter in blacklist }
+                }
+                // Filter out words that don't have the right amount of unplaced letters
+                .filter { word ->
+                    word.toList()
+                        .intersect(unplacedLetters)
+                        .map { letter ->
+                            minOf(
+                                word.count { wordLetter -> wordLetter == letter },
+                                unplacedLetters.count { unplacedLetter -> unplacedLetter == letter }
+                            )
+                        }.sum() == unplacedLetters.count()
                 }
                 .toList()
         }
